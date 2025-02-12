@@ -6,6 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Настроим базовое логирование
 logging.basicConfig(
@@ -117,67 +118,71 @@ def get_total_items():
     data = response.json()
     return data.get("total_count", 0)
 
-# Функция для парсинга всех предметов
+# Функция для парсинга одного запроса
+def fetch_items(start, step):
+    url = "https://steamcommunity.com/market/search/render/"
+    params = {
+        "query": "",
+        "start": start,
+        "count": step,
+        "search_descriptions": 1,
+        "sort_column": "price",
+        "sort_dir": "desc",
+        "appid": 730,
+        "norender": 1,
+        "l": "english"
+    }
+    
+    try:
+        logger.info(f"Fetching items from {start} to {start + step}...")
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("results", [])
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error: {e}")
+        return []
+
+# Основная функция для парсинга всех предметов
 def parse_market():
     create_table()
     total_items = get_total_items()
     logger.info(f"Total items on the market: {total_items}")
     
-    url = "https://steamcommunity.com/market/search/render/"
     step = 100  # Request 100 items per batch
+    futures = []
     
-    for start in range(0, total_items, step):
-        params = {
-            "query": "",
-            "start": start,
-            "count": step,
-            "search_descriptions": 1,
-            "sort_column": "price",
-            "sort_dir": "desc",
-            "appid": 730,
-            "norender": 1,
-            "l": "english"
-        }
+    with ThreadPoolExecutor(max_workers=10) as executor:  # Указываем количество потоков
+        for start in range(0, total_items, step):
+            futures.append(executor.submit(fetch_items, start, step))
 
-        try:
-            logger.info(f"Fetching items from {start} to {start + step}...")
-            response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request error: {e}")
-            time.sleep(5)
-            continue
-        
-        data = response.json()
-        results = data.get("results", [])
-        
-        for item in results:
-            item_data = {
-                "name": item.get("name", "Unknown"),
-                "hash_name": item.get("hash_name", "Unknown"),
-                "sell_listings": item.get("sell_listings", 0),
-                "sell_price": item.get("sell_price", 0),
-                "sell_price_text": item.get("sell_price_text", "N/A"),
-                "app_icon": item.get("app_icon", ""),
-                "app_name": item.get("app_name", "Unknown"),
-                "appid": item.get("asset_description", {}).get("appid", 0),
-                "classid": item.get("asset_description", {}).get("classid", ""),
-                "instanceid": item.get("asset_description", {}).get("instanceid", ""),
-                "icon_url": item.get("asset_description", {}).get("icon_url", ""),
-                "tradable": item.get("asset_description", {}).get("tradable", 0),
-                "item_name": item.get("asset_description", {}).get("name", "Unknown"),
-                "name_color": item.get("asset_description", {}).get("name_color", ""),
-                "item_type": item.get("asset_description", {}).get("type", ""),
-                "market_name": item.get("asset_description", {}).get("market_name", ""),
-                "market_hash_name": item.get("asset_description", {}).get("market_hash_name", ""),
-                "commodity": item.get("asset_description", {}).get("commodity", 0),
-                "sale_price_text": item.get("sale_price_text", "N/A")
-            }
-            
-            insert_item(item_data)
-        
-        logger.info(f"Loaded {start + len(results)} of {total_items} items.")
-        time.sleep(2)  # Delay to avoid rate limiting
+        for future in as_completed(futures):
+            items = future.result()
+            for item in items:
+                item_data = {
+                    "name": item.get("name", "Unknown"),
+                    "hash_name": item.get("hash_name", "Unknown"),
+                    "sell_listings": item.get("sell_listings", 0),
+                    "sell_price": item.get("sell_price", 0),
+                    "sell_price_text": item.get("sell_price_text", "N/A"),
+                    "app_icon": item.get("app_icon", ""),
+                    "app_name": item.get("app_name", "Unknown"),
+                    "appid": item.get("asset_description", {}).get("appid", 0),
+                    "classid": item.get("asset_description", {}).get("classid", ""),
+                    "instanceid": item.get("asset_description", {}).get("instanceid", ""),
+                    "icon_url": item.get("asset_description", {}).get("icon_url", ""),
+                    "tradable": item.get("asset_description", {}).get("tradable", 0),
+                    "item_name": item.get("asset_description", {}).get("name", "Unknown"),
+                    "name_color": item.get("asset_description", {}).get("name_color", ""),
+                    "item_type": item.get("asset_description", {}).get("type", ""),
+                    "market_name": item.get("asset_description", {}).get("market_name", ""),
+                    "market_hash_name": item.get("asset_description", {}).get("market_hash_name", ""),
+                    "commodity": item.get("asset_description", {}).get("commodity", 0),
+                    "sale_price_text": item.get("sale_price_text", "N/A")
+                }
+                insert_item(item_data)
+    
+    logger.info(f"Completed loading all items.")
 
 if __name__ == "__main__":
     parse_market()
