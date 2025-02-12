@@ -113,21 +113,40 @@ def insert_item(data):
 
 # Получение количества предметов на рынке
 def get_total_items():
-    url = "https://steamcommunity.com/market/search/render/"
-    params = {
-        "query": "",
-        "start": 0,
-        "count": 1,
-        "search_descriptions": 0,
-        "sort_column": "price",
-        "sort_dir": "desc",
-        "appid": 730,
-        "norender": 1,
-        "l": "english"
-    }
-    response = requests.get(url, params=params)
-    data = response.json()
-    return data.get("total_count", 0)
+    try:
+        url = "https://steamcommunity.com/market/search/render/"
+        params = {
+            "query": "",
+            "start": 0,
+            "count": 1,
+            "search_descriptions": 0,
+            "sort_column": "price",
+            "sort_dir": "desc",
+            "appid": 730,
+            "norender": 1,
+            "l": "english"
+        }
+        response = requests.get(url, params=params)
+
+        # Проверка на успешный ответ
+        if response.status_code != 200:
+            logger.error(f"Failed to fetch data from {url}. Status code: {response.status_code}")
+            return 0
+
+        data = response.json()
+
+        if data is None:
+            logger.error(f"Response data is None. The endpoint might be on cooldown: {url}")
+            return 0
+
+        return data.get("total_count", 0)
+
+    except AttributeError as e:
+        logger.error(f"Error while fetching total items: {e}. The endpoint might be on cooldown: https://steamcommunity.com/market/search/render/")
+        return 0
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return 0
 
 # Функция для парсинга одного запроса
 def fetch_items(start, step, retries=0):
