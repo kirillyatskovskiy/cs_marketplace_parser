@@ -14,7 +14,10 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 
-logging.getLogger('sqlalchemy.engine').disabled = True
+# Отключение логов SQLAlchemy
+logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
+logging.getLogger('sqlalchemy.engine.base').setLevel(logging.WARNING)
+logging.getLogger('sqlalchemy.engine').propagate = False
 
 logger = logging.getLogger(__name__)
 
