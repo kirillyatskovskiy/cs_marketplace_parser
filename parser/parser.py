@@ -4,9 +4,18 @@ import time
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
+
+DB_CONFIG = {
+    "dbname": os.getenv("DB_NAME", "cs2_steam_marketplace"),
+    "user": os.getenv("DB_USER", "root"),
+    "password": os.getenv("DB_PASSWORD", "root"),
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": os.getenv("DB_PORT", 5432)
+}
 
 # Настройки базы данных PostgreSQL из переменных окружения
-DB_URL = os.getenv("DB_URL", "postgresql://root:root@localhost:5432/cs2_steam_marketplace")
+DB_URL = db_url = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
 
 # Создание базового класса для SQLAlchemy
 Base = declarative_base()
@@ -37,41 +46,48 @@ class Cs2Market(Base):
     sale_price_text = Column(Text)
 
 # Создание подключения к базе данных
-engine = create_engine(DB_URL, echo=True)
+engine = create_engine(DB_URL, echo=True, poolclass=NullPool)
+
+# Создание сессии для работы с базой данных
+Session = sessionmaker(bind=engine)
 
 # Создание таблицы в базе данных
 def create_table():
     Base.metadata.create_all(engine)
 
-# Создание сессии для работы с базой данных
-Session = sessionmaker(bind=engine)
-session = Session()
-
 # Функция для вставки данных в базу
 def insert_item(data):
-    item = Cs2Market(
-        name=data["name"],
-        hash_name=data["hash_name"],
-        sell_listings=data["sell_listings"],
-        sell_price=data["sell_price"],
-        sell_price_text=data["sell_price_text"],
-        app_icon=data["app_icon"],
-        app_name=data["app_name"],
-        appid=data["appid"],
-        classid=data["classid"],
-        instanceid=data["instanceid"],
-        icon_url=data["icon_url"],
-        tradable=data["tradable"],
-        item_name=data["item_name"],
-        name_color=data["name_color"],
-        item_type=data["item_type"],
-        market_name=data["market_name"],
-        market_hash_name=data["market_hash_name"],
-        commodity=data["commodity"],
-        sale_price_text=data["sale_price_text"]
-    )
-    session.add(item)
-    session.commit()
+    # Создание сессии для работы с базой данных
+    session = Session()  # Создаем сессию
+    try:
+        item = Cs2Market(
+            name=data["name"],
+            hash_name=data["hash_name"],
+            sell_listings=data["sell_listings"],
+            sell_price=data["sell_price"],
+            sell_price_text=data["sell_price_text"],
+            app_icon=data["app_icon"],
+            app_name=data["app_name"],
+            appid=data["appid"],
+            classid=data["classid"],
+            instanceid=data["instanceid"],
+            icon_url=data["icon_url"],
+            tradable=data["tradable"],
+            item_name=data["item_name"],
+            name_color=data["name_color"],
+            item_type=data["item_type"],
+            market_name=data["market_name"],
+            market_hash_name=data["market_hash_name"],
+            commodity=data["commodity"],
+            sale_price_text=data["sale_price_text"]
+        )
+        session.add(item)
+        session.commit()
+    except Exception as e:
+        session.rollback()  # Откатываем транзакцию в случае ошибки
+        print(f"Ошибка вставки данных: {e}")
+    finally:
+        session.close()  # Закрытие сессии
 
 # Получение количества предметов на рынке
 def get_total_items():
@@ -93,7 +109,7 @@ def get_total_items():
 
 # Функция для парсинга всех предметов
 def parse_market():
-    create_table()
+    create_table()  # Создание таблицы в базе
     total_items = get_total_items()
     print(f"Всего предметов: {total_items}")
     
@@ -112,10 +128,13 @@ def parse_market():
             "norender": 1,
             "l": "english"
         }
-        response = requests.get(url, params=params)
-        if response.status_code != 200:
-            print(f"Ошибка запроса: {response.status_code}")
-            time.sleep(5)  # Ожидание перед повтором
+
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()  # Проверяет, был ли ответ 200 OK
+        except requests.exceptions.RequestException as e:
+            print(f"Ошибка запроса: {e}")
+            time.sleep(5)
             continue
         
         data = response.json()
