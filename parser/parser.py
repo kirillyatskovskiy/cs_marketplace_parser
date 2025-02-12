@@ -68,25 +68,10 @@ def create_table():
 
 def is_duplicate(session, data):
     return session.query(Cs2Market).filter_by(
-        name=data["name"],
         hash_name=data["hash_name"],
-        sell_listings=data["sell_listings"],
-        sell_price=data["sell_price"],
-        sell_price_text=data["sell_price_text"],
-        app_icon=data["app_icon"],
-        app_name=data["app_name"],
-        appid=data["appid"],
         classid=data["classid"],
         instanceid=data["instanceid"],
-        icon_url=data["icon_url"],
-        tradable=data["tradable"],
-        item_name=data["item_name"],
-        name_color=data["name_color"],
-        item_type=data["item_type"],
-        market_name=data["market_name"],
         market_hash_name=data["market_hash_name"],
-        commodity=data["commodity"],
-        sale_price_text=data["sale_price_text"]
     ).first() is not None
 
 # Функция для вставки данных в базу
@@ -180,8 +165,6 @@ def fetch_items(start, step, retries=0):
     except requests.exceptions.RequestException as e:
         logger.error(f"Request error: {e}")
         return []
-
-
 
 # Основная функция для парсинга всех предметов
 def parse_market():
