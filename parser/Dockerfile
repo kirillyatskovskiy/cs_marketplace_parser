@@ -18,4 +18,4 @@ ENV DB_PASSWORD=root
 ENV DB_HOST=postgres_cs2p
 ENV DB_PORT=5432
 
-CMD ["python", "steam_parser.py"]
+CMD ["python", "parser.py"]
