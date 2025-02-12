@@ -68,10 +68,10 @@ def create_table():
 
 def is_duplicate(session, data):
     return session.query(Cs2Market).filter_by(
-        hash_name=data["hash_name"],
-        classid=data["classid"],
-        instanceid=data["instanceid"],
-        market_hash_name=data["market_hash_name"],
+        appid=data["asset_description"]["appid"],
+        classid=data["asset_description"]["classid"],
+        instanceid=data["asset_description"]["instanceid"],
+        market_hash_name=data["asset_description"]["market_hash_name"]
     ).first() is not None
 
 # Функция для вставки данных в базу
