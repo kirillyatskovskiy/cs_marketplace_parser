@@ -1,5 +1,3 @@
 requests
 psycopg2
 sqlalchemy
-termcolor
-colorama

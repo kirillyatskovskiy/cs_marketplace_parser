@@ -9,7 +9,6 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import random
 
-
 # Настроим базовое логирование
 logging.basicConfig(
     level=logging.INFO,
