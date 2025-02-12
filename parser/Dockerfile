@@ -18,4 +18,7 @@ ENV DB_PASSWORD=root
 ENV DB_HOST=postgres_cs2p
 ENV DB_PORT=5432
 
+COPY wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
+
 CMD ["python", "parser.py"]
