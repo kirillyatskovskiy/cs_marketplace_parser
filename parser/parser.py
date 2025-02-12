@@ -117,6 +117,7 @@ def get_total_items():
             "norender": 1,
             "l": "english"
         }
+        
         response = requests.get(url, params=params)
 
         # Проверка на успешный ответ
@@ -126,15 +127,13 @@ def get_total_items():
 
         data = response.json()
 
+        # Проверка на None
         if data is None:
             logger.error(f"Response data is None. The endpoint might be on cooldown: {url}")
             return 0
 
         return data.get("total_count", 0)
 
-    except AttributeError as e:
-        logger.error(f"Error while fetching total items: {e}. The endpoint might be on cooldown: https://steamcommunity.com/market/search/render/")
-        return 0
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return 0
