@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: steam_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: steam_market
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  steam_parser:
+    build: .
+    container_name: steam_parser
+    restart: always
+    environment:
+      DB_NAME: steam_market
+      DB_USER: your_user
+      DB_PASSWORD: your_password
+      DB_HOST: postgres
+      DB_PORT: 5432
+    depends_on:
+      - postgres
+
+volumes:
+  pg_data:
