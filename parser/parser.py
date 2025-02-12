@@ -119,7 +119,7 @@ def get_total_items():
     return data.get("total_count", 0)
 
 # Функция для парсинга одного запроса
-def fetch_items(start, step):
+def fetch_items(start, step, retries=0):
     url = "https://steamcommunity.com/market/search/render/"
     params = {
         "query": "",
@@ -132,25 +132,30 @@ def fetch_items(start, step):
         "norender": 1,
         "l": "english"
     }
-    
+
     try:
         logger.info(f"Fetching items from {start} to {start + step}...")
+
         response = requests.get(url, params=params, timeout=10)
-        
-        # Если ошибка 429 (слишком много запросов), извлекаем время из Retry-After
+
+        # Если ошибка 429 (слишком много запросов), применяем экспоненциальный откат
         if response.status_code == 429:
-            retry_after = int(response.headers.get("Retry-After", 1))  # Задержка в секундах (по умолчанию 1 секунда)
-            logger.warning(f"Rate limit exceeded. Retrying after {retry_after} seconds...")
-            time.sleep(retry_after)  # Ожидаем указанное время перед повтором запроса
-            return fetch_items(start, step)  # Повторяем запрос
-        
-        response.raise_for_status()  # Выбрасываем исключение, если другой статус ошибки
+            # Экспоненциальный откат: увеличиваем задержку в 2 раза для каждой новой попытки
+            backoff_time = 2 ** retries  # Начинаем с 1 секунды, затем 2, 4, 8 и т.д.
+            logger.warning(f"Rate limit exceeded. Retrying after {backoff_time} seconds...")
+            time.sleep(backoff_time)  # Ожидаем указанное время перед повтором запроса
+
+            # Повторяем запрос с увеличением числа попыток
+            return fetch_items(start, step, retries + 1)
+
+        response.raise_for_status()  # Выбрасываем исключение для других ошибок статуса
         data = response.json()
         return data.get("results", [])
-    
+
     except requests.exceptions.RequestException as e:
         logger.error(f"Request error: {e}")
         return []
+
 
 # Основная функция для парсинга всех предметов
 def parse_market():
