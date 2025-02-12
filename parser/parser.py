@@ -136,9 +136,18 @@ def fetch_items(start, step):
     try:
         logger.info(f"Fetching items from {start} to {start + step}...")
         response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
+        
+        # Если ошибка 429 (слишком много запросов), извлекаем время из Retry-After
+        if response.status_code == 429:
+            retry_after = int(response.headers.get("Retry-After", 1))  # Задержка в секундах (по умолчанию 1 секунда)
+            logger.warning(f"Rate limit exceeded. Retrying after {retry_after} seconds...")
+            time.sleep(retry_after)  # Ожидаем указанное время перед повтором запроса
+            return fetch_items(start, step)  # Повторяем запрос
+        
+        response.raise_for_status()  # Выбрасываем исключение, если другой статус ошибки
         data = response.json()
         return data.get("results", [])
+    
     except requests.exceptions.RequestException as e:
         logger.error(f"Request error: {e}")
         return []
