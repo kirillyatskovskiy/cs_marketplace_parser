@@ -1,5 +1,7 @@
 FROM python:3.11-slim
 
+ENV TERM=xterm-256color
+
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
