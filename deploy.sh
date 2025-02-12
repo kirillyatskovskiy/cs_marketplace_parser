@@ -10,7 +10,7 @@ git pull
 
 # Строим и запускаем контейнеры Docker с обновлением
 echo "Building and starting Docker containers..."
-docker compose up --build -d
+docker compose up --build
 
 # Завершаем выполнение
 echo "Deployment complete!"
