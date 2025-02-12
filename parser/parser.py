@@ -8,12 +8,16 @@ from sqlalchemy.pool import NullPool
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import random
+from termcolor import colored
+from colorama import init
 
+# Инициализация Colorama для Windows
+init()
 
 # Настроим базовое логирование
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+    format="%(message)s",  # Убираем стандартный формат
     handlers=[logging.StreamHandler()]
 )
 
@@ -28,14 +32,14 @@ DB_CONFIG = {
 }
 
 # Настройки базы данных PostgreSQL из переменных окружения
-DB_URL = db_url = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
+DB_URL = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
 
 # Создание базового класса для SQLAlchemy
 Base = declarative_base()
 
 # Определение модели для таблицы cs2_market
 class Cs2Market(Base):
-    __tablename__ = 'cs2_steam_marketplace' # SELECT COUNT(*) FROM cs2_steam_marketplace;
+    __tablename__ = 'cs2_steam_marketplace'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(Text)
@@ -95,10 +99,10 @@ def insert_item(data):
         )
         session.add(item)
         session.commit()
-        logger.info(f"Item '{data['name']}' successfully inserted into database.")
+        logger.info(colored(f"Item '{data['name']}' successfully inserted into database.", 'green'))
     except Exception as e:
         session.rollback()
-        logger.error(f"Error inserting item '{data['name']}': {e}")
+        logger.error(colored(f"Error inserting item '{data['name']}': {e}", 'red'))
     finally:
         session.close()
 
@@ -117,25 +121,25 @@ def get_total_items():
             "norender": 1,
             "l": "english"
         }
-        
+
         response = requests.get(url, params=params)
 
         # Проверка на успешный ответ
         if response.status_code != 200:
-            logger.error(f"Failed to fetch data from {url}. Status code: {response.status_code}")
+            logger.error(colored(f"Failed to fetch data from {url}. Status code: {response.status_code}", 'yellow'))
             return 0
 
         data = response.json()
 
         # Проверка на None
         if data is None:
-            logger.error(f"Response data is None. The endpoint might be on cooldown: {url}")
+            logger.error(colored(f"Response data is None. The endpoint might be on cooldown: {url}", 'yellow'))
             return 0
 
         return data.get("total_count", 0)
 
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        logger.error(colored(f"Unexpected error: {e}", 'red'))
         return 0
 
 # Функция для парсинга одного запроса
@@ -156,7 +160,7 @@ def fetch_items(start, step, retries=0):
     try:
         # Генерация случайной задержки и логирование
         delay = random.uniform(1, 10)
-        logger.info(f"Fetching items from {start} to {start + step}... Sleeping for {delay:.2f} seconds...")
+        logger.info(colored(f"Fetching items from {start} to {start + step}... Sleeping for {delay:.2f} seconds...", 'cyan'))
 
         # Ожидание
         time.sleep(delay)
@@ -166,7 +170,7 @@ def fetch_items(start, step, retries=0):
         # Если ошибка 429 (слишком много запросов), применяем фиксированную задержку
         if response.status_code == 429:
             # Фиксированная задержка в 30 секунд
-            logger.warning(f"Rate limit exceeded. Retrying after 30 seconds...")
+            logger.warning(colored(f"Rate limit exceeded. Retrying after 30 seconds...", 'yellow'))
             time.sleep(30)  # Ожидаем 30 секунд перед повтором запроса
 
             # Повторяем запрос
@@ -177,18 +181,18 @@ def fetch_items(start, step, retries=0):
         return data.get("results", [])
 
     except requests.exceptions.RequestException as e:
-        logger.error(f"Request error: {e}")
+        logger.error(colored(f"Request error: {e}", 'red'))
         return []
 
 # Основная функция для парсинга всех предметов
 def parse_market():
     create_table()
     total_items = get_total_items()
-    logger.info(f"Total items on the market: {total_items}")
-    
+    logger.info(colored(f"Total items on the market: {total_items}", 'magenta'))
+
     step = 100  # Request 100 items per batch
     futures = []
-    
+
     with ThreadPoolExecutor(max_workers=10) as executor:  # Указываем количество потоков
         for start in range(0, total_items, step):
             futures.append(executor.submit(fetch_items, start, step))
@@ -218,8 +222,8 @@ def parse_market():
                     "sale_price_text": item.get("sale_price_text", "N/A")
                 }
                 insert_item(item_data)
-    
-    logger.info(f"Completed loading all items.")
+
+    logger.info(colored(f"Completed loading all items.", 'green'))
 
 if __name__ == "__main__":
     parse_market()
