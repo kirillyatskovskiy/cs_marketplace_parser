@@ -1,67 +1,77 @@
 import os
 import requests
-import psycopg2
 import time
+from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 # Настройки базы данных PostgreSQL из переменных окружения
-DB_CONFIG = {
-    "dbname": os.getenv("DB_NAME", "cs2_steam_marketplace"),
-    "user": os.getenv("DB_USER", "root"),
-    "password": os.getenv("DB_PASSWORD", "root"),
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": os.getenv("DB_PORT", 5432)
-}
+DB_URL = os.getenv("DB_URL", "postgresql://root:root@localhost:5432/cs2_steam_marketplace")
 
-# Функция для создания таблицы в PostgreSQL
+# Создание базового класса для SQLAlchemy
+Base = declarative_base()
+
+# Определение модели для таблицы cs2_market
+class Cs2Market(Base):
+    __tablename__ = 'cs2_market'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(Text)
+    hash_name = Column(Text)
+    sell_listings = Column(Integer)
+    sell_price = Column(Integer)
+    sell_price_text = Column(Text)
+    app_icon = Column(Text)
+    app_name = Column(Text)
+    appid = Column(Integer)
+    classid = Column(Text)
+    instanceid = Column(Text)
+    icon_url = Column(Text)
+    tradable = Column(Integer)
+    item_name = Column(Text)
+    name_color = Column(Text)
+    item_type = Column(Text)
+    market_name = Column(Text)
+    market_hash_name = Column(Text)
+    commodity = Column(Integer)
+    sale_price_text = Column(Text)
+
+# Создание подключения к базе данных
+engine = create_engine(DB_URL, echo=True)
+
+# Создание таблицы в базе данных
 def create_table():
-    conn = psycopg2.connect(**DB_CONFIG)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS cs2_market (
-            id SERIAL PRIMARY KEY,
-            name TEXT,
-            hash_name TEXT,
-            sell_listings INTEGER,
-            sell_price INTEGER,
-            sell_price_text TEXT,
-            app_icon TEXT,
-            app_name TEXT,
-            appid INTEGER,
-            classid TEXT,
-            instanceid TEXT,
-            icon_url TEXT,
-            tradable INTEGER,
-            item_name TEXT,
-            name_color TEXT,
-            item_type TEXT,
-            market_name TEXT,
-            market_hash_name TEXT,
-            commodity INTEGER,
-            sale_price_text TEXT
-        )
-    """)
-    conn.commit()
-    cursor.close()
-    conn.close()
+    Base.metadata.create_all(engine)
+
+# Создание сессии для работы с базой данных
+Session = sessionmaker(bind=engine)
+session = Session()
 
 # Функция для вставки данных в базу
 def insert_item(data):
-    conn = psycopg2.connect(**DB_CONFIG)
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO cs2_market (name, hash_name, sell_listings, sell_price, sell_price_text, app_icon, app_name,
-                                appid, classid, instanceid, icon_url, tradable, item_name, name_color, item_type, 
-                                market_name, market_hash_name, commodity, sale_price_text)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, (
-        data["name"], data["hash_name"], data["sell_listings"], data["sell_price"], data["sell_price_text"],
-        data["app_icon"], data["app_name"], data["appid"], data["classid"], data["instanceid"], 
-        data["icon_url"], data["tradable"], data["item_name"], data["name_color"], data["item_type"], 
-        data["market_name"], data["market_hash_name"], data["commodity"], data["sale_price_text"]
-    ))
-    conn.commit()
-    cursor.close()
-    conn.close()
+    item = Cs2Market(
+        name=data["name"],
+        hash_name=data["hash_name"],
+        sell_listings=data["sell_listings"],
+        sell_price=data["sell_price"],
+        sell_price_text=data["sell_price_text"],
+        app_icon=data["app_icon"],
+        app_name=data["app_name"],
+        appid=data["appid"],
+        classid=data["classid"],
+        instanceid=data["instanceid"],
+        icon_url=data["icon_url"],
+        tradable=data["tradable"],
+        item_name=data["item_name"],
+        name_color=data["name_color"],
+        item_type=data["item_type"],
+        market_name=data["market_name"],
+        market_hash_name=data["market_hash_name"],
+        commodity=data["commodity"],
+        sale_price_text=data["sale_price_text"]
+    )
+    session.add(item)
+    session.commit()
 
 # Получение количества предметов на рынке
 def get_total_items():
