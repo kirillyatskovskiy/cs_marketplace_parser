@@ -1,31 +1,37 @@
 version: '3.9'
 
 services:
-  postgres:
+  postgres_cs2p:
     image: postgres:15
-    container_name: steam_postgres
+    container_name: postgres_cs2p
     restart: always
     environment:
-      POSTGRES_DB: steam_market
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: cs2_steam_marketplace
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
     ports:
       - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - postgres_data_cs2p:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d cs2_steam_marketplace"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 3s
 
-  steam_parser:
-    build: .
-    container_name: steam_parser
+  parser_cs2p:
+    build: ./parser
+    container_name: parser_cs2p
     restart: always
     environment:
-      DB_NAME: steam_market
-      DB_USER: your_user
-      DB_PASSWORD: your_password
-      DB_HOST: postgres
+      DB_NAME: cs2_steam_marketplace
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_HOST: postgres_cs2p
       DB_PORT: 5432
     depends_on:
-      - postgres
+      - postgres_cs2p
 
 volumes:
-  pg_data:
+  postgres_data_cs2p:
