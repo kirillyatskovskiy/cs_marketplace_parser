@@ -28,6 +28,7 @@ services:
       DB_PORT: 5432
     depends_on:
       - postgres_cs2p
+    command: /wait-for-it.sh postgres_cs2p:5432 -- python /app/parser.py
 
 volumes:
   postgres_data_cs2p:
