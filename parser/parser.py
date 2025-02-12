@@ -9,6 +9,7 @@ from sqlalchemy import UniqueConstraint
 from sqlalchemy.exc import IntegrityError
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import random
 
 
 # Настроим базовое логирование
@@ -144,15 +145,20 @@ def fetch_items(start, step, retries=0):
     }
 
     try:
-        logger.info(f"Fetching items from {start} to {start + step}...")
+        # Генерация случайной задержки и логирование
+        delay = random.uniform(1, 10)
+        logger.info(f"Fetching items from {start} to {start + step}... Sleeping for {delay:.2f} seconds...")
+
+        # Ожидание
+        time.sleep(delay)
 
         response = requests.get(url, params=params, timeout=10)
 
         # Если ошибка 429 (слишком много запросов), применяем фиксированную задержку
         if response.status_code == 429:
-            # Фиксированная задержка в 15 секунд
-            logger.warning(f"Rate limit exceeded. Retrying after 15 seconds...")
-            time.sleep(15)  # Ожидаем 15 секунд перед повтором запроса
+            # Фиксированная задержка в 30 секунд
+            logger.warning(f"Rate limit exceeded. Retrying after 30 seconds...")
+            time.sleep(30)  # Ожидаем 30 секунд перед повтором запроса
 
             # Повторяем запрос
             return fetch_items(start, step, retries + 1)
