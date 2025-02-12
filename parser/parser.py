@@ -33,7 +33,7 @@ Base = declarative_base()
 
 # Определение модели для таблицы cs2_market
 class Cs2Market(Base):
-    __tablename__ = 'cs2_steam_marketplace'
+    __tablename__ = 'cs2_steam_marketplace' # SELECT COUNT(*) FROM cs2_steam_marketplace;
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(Text)
@@ -66,10 +66,36 @@ Session = sessionmaker(bind=engine)
 def create_table():
     Base.metadata.create_all(engine)
 
+def is_duplicate(session, data):
+    return session.query(Cs2Market).filter_by(
+        name=data["name"],
+        hash_name=data["hash_name"],
+        sell_listings=data["sell_listings"],
+        sell_price=data["sell_price"],
+        sell_price_text=data["sell_price_text"],
+        app_icon=data["app_icon"],
+        app_name=data["app_name"],
+        appid=data["appid"],
+        classid=data["classid"],
+        instanceid=data["instanceid"],
+        icon_url=data["icon_url"],
+        tradable=data["tradable"],
+        item_name=data["item_name"],
+        name_color=data["name_color"],
+        item_type=data["item_type"],
+        market_name=data["market_name"],
+        market_hash_name=data["market_hash_name"],
+        commodity=data["commodity"],
+        sale_price_text=data["sale_price_text"]
+    ).first() is not None
+
 # Функция для вставки данных в базу
 def insert_item(data):
     session = Session()
     try:
+        if is_duplicate(session, data):
+            logger.warning(f"Duplicate item '{data['name']}' found. Skipping insertion.")
+            return
         item = Cs2Market(
             name=data["name"],
             hash_name=data["hash_name"],
@@ -138,14 +164,13 @@ def fetch_items(start, step, retries=0):
 
         response = requests.get(url, params=params, timeout=10)
 
-        # Если ошибка 429 (слишком много запросов), применяем экспоненциальный откат
+        # Если ошибка 429 (слишком много запросов), применяем фиксированную задержку
         if response.status_code == 429:
-            # Экспоненциальный откат: увеличиваем задержку в 2 раза для каждой новой попытки
-            backoff_time = 2 ** retries  # Начинаем с 1 секунды, затем 2, 4, 8 и т.д.
-            logger.warning(f"Rate limit exceeded. Retrying after {backoff_time} seconds...")
-            time.sleep(backoff_time)  # Ожидаем указанное время перед повтором запроса
+            # Фиксированная задержка в 15 секунд
+            logger.warning(f"Rate limit exceeded. Retrying after 15 seconds...")
+            time.sleep(15)  # Ожидаем 15 секунд перед повтором запроса
 
-            # Повторяем запрос с увеличением числа попыток
+            # Повторяем запрос
             return fetch_items(start, step, retries + 1)
 
         response.raise_for_status()  # Выбрасываем исключение для других ошибок статуса
@@ -155,6 +180,7 @@ def fetch_items(start, step, retries=0):
     except requests.exceptions.RequestException as e:
         logger.error(f"Request error: {e}")
         return []
+
 
 
 # Основная функция для парсинга всех предметов
