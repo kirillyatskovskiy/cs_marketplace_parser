@@ -14,6 +14,8 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 
+logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
+
 logger = logging.getLogger(__name__)
 
 DB_CONFIG = {
