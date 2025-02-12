@@ -5,8 +5,6 @@ from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
-from sqlalchemy import UniqueConstraint
-from sqlalchemy.exc import IntegrityError
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import random
@@ -60,10 +58,6 @@ class Cs2Market(Base):
     commodity = Column(Integer)
     sale_price_text = Column(Text)
 
-    __table_args__ = (
-        UniqueConstraint('appid', 'classid', 'instanceid', 'market_hash_name', name='_unique_item'),
-    )
-
 # Создание подключения к базе данных
 engine = create_engine(DB_URL, poolclass=NullPool)
 
@@ -102,9 +96,6 @@ def insert_item(data):
         session.add(item)
         session.commit()
         logger.info(f"Item '{data['name']}' successfully inserted into database.")
-    except IntegrityError:
-        session.rollback()  # Откатываем транзакцию, если ошибка уникальности
-        logger.warning(f"Duplicate item '{data['name']}' found. Skipping insertion.")
     except Exception as e:
         session.rollback()
         logger.error(f"Error inserting item '{data['name']}': {e}")
