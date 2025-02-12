@@ -5,6 +5,16 @@ from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
+import logging
+
+# Настроим базовое логирование
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()]
+)
+
+logger = logging.getLogger(__name__)
 
 DB_CONFIG = {
     "dbname": os.getenv("DB_NAME", "cs2_steam_marketplace"),
@@ -57,8 +67,7 @@ def create_table():
 
 # Функция для вставки данных в базу
 def insert_item(data):
-    # Создание сессии для работы с базой данных
-    session = Session()  # Создаем сессию
+    session = Session()
     try:
         item = Cs2Market(
             name=data["name"],
@@ -83,11 +92,12 @@ def insert_item(data):
         )
         session.add(item)
         session.commit()
+        logger.info(f"Item '{data['name']}' successfully inserted into database.")
     except Exception as e:
-        session.rollback()  # Откатываем транзакцию в случае ошибки
-        print(f"Ошибка вставки данных: {e}")
+        session.rollback()
+        logger.error(f"Error inserting item '{data['name']}': {e}")
     finally:
-        session.close()  # Закрытие сессии
+        session.close()
 
 # Получение количества предметов на рынке
 def get_total_items():
@@ -109,12 +119,12 @@ def get_total_items():
 
 # Функция для парсинга всех предметов
 def parse_market():
-    create_table()  # Создание таблицы в базе
+    create_table()
     total_items = get_total_items()
-    print(f"Всего предметов: {total_items}")
+    logger.info(f"Total items on the market: {total_items}")
     
     url = "https://steamcommunity.com/market/search/render/"
-    step = 100  # Запрашиваем по 100 предметов
+    step = 100  # Request 100 items per batch
     
     for start in range(0, total_items, step):
         params = {
@@ -130,10 +140,11 @@ def parse_market():
         }
 
         try:
+            logger.info(f"Fetching items from {start} to {start + step}...")
             response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()  # Проверяет, был ли ответ 200 OK
+            response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            print(f"Ошибка запроса: {e}")
+            logger.error(f"Request error: {e}")
             time.sleep(5)
             continue
         
@@ -141,7 +152,6 @@ def parse_market():
         results = data.get("results", [])
         
         for item in results:
-            # Извлечение данных из ответа
             item_data = {
                 "name": item.get("name", "Unknown"),
                 "hash_name": item.get("hash_name", "Unknown"),
@@ -164,11 +174,10 @@ def parse_market():
                 "sale_price_text": item.get("sale_price_text", "N/A")
             }
             
-            # Вставка данных в базу
             insert_item(item_data)
         
-        print(f"Loaded {start + len(results)} of {total_items} items")
-        time.sleep(2)  # Пауза, чтобы избежать блокировки Steam API
+        logger.info(f"Loaded {start + len(results)} of {total_items} items.")
+        time.sleep(2)  # Delay to avoid rate limiting
 
 if __name__ == "__main__":
     parse_market()
