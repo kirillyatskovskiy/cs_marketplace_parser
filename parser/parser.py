@@ -22,7 +22,7 @@ Base = declarative_base()
 
 # Определение модели для таблицы cs2_market
 class Cs2Market(Base):
-    __tablename__ = 'cs2_market'
+    __tablename__ = 'cs2_steam_marketplace'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(Text)
