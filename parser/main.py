@@ -1,14 +1,15 @@
+import os
 import requests
 import psycopg2
 import time
 
-# Настройки базы данных PostgreSQL
+# Настройки базы данных PostgreSQL из переменных окружения
 DB_CONFIG = {
-    "dbname": "steam_market",
-    "user": "your_user",
-    "password": "your_password",
-    "host": "localhost",
-    "port": 5432
+    "dbname": os.getenv("DB_NAME", "cs2_steam_marketplace"),
+    "user": os.getenv("DB_USER", "root"),
+    "password": os.getenv("DB_PASSWORD", "root"),
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": os.getenv("DB_PORT", 5432)
 }
 
 # Функция для создания таблицы в PostgreSQL
