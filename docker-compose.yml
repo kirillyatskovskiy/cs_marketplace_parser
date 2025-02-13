@@ -21,6 +21,7 @@ services:
     build: ./parser
     container_name: parser_cs2p
     environment:
+      PARSER_MODE: update
       DB_NAME: cs2_steam_marketplace
       DB_USER: root
       DB_PASSWORD: root

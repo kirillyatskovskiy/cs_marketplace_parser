@@ -61,11 +61,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--mode", choices=["full", "update"], default="full", help="Mode of operation")
-args = parser.parse_args()
-
-MODE = args.mode
+MODE = os.getenv('PARSER_MODE', 'full') 
 logger.info(f"Running in {MODE.upper()} mode...")
 
 DB_CONFIG = {
