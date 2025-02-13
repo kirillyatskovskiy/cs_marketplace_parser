@@ -8,6 +8,14 @@ from sqlalchemy.pool import NullPool
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import random
+import argparse
+import traceback
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--mode", choices=["full", "update"], default="full", help="Mode of operation")
+args = parser.parse_args()
+
+MODE = args.mode
 
 # Настроим базовое логирование
 logging.basicConfig(
@@ -27,35 +35,55 @@ DB_CONFIG = {
 }
 
 # Настройки базы данных PostgreSQL из переменных окружения
-DB_URL = db_url = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
+DB_URL = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
 
 # Создание базового класса для SQLAlchemy
 Base = declarative_base()
 
 # Определение модели для таблицы cs2_market
-class Cs2Market(Base):
-    __tablename__ = 'cs2_steam_marketplace' # SELECT COUNT(*) FROM cs2_steam_marketplace;
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(Text)
-    hash_name = Column(Text)
-    sell_listings = Column(Integer)
-    sell_price = Column(Integer)
-    sell_price_text = Column(Text)
-    app_icon = Column(Text)
-    app_name = Column(Text)
-    appid = Column(Integer)
-    classid = Column(Text)
-    instanceid = Column(Text)
-    icon_url = Column(Text)
-    tradable = Column(Integer)
-    item_name = Column(Text)
-    name_color = Column(Text)
-    item_type = Column(Text)
-    market_name = Column(Text)
-    market_hash_name = Column(Text)
-    commodity = Column(Integer)
-    sale_price_text = Column(Text)
+if MODE == 'full':
+    class Cs2Market(Base):
+        __tablename__ = 'cs2_steam_marketplace'  # SELECT COUNT(*) FROM cs2_steam_marketplace;
+
+        id = Column(Integer, primary_key=True, autoincrement=True)
+        name = Column(Text)
+        hash_name = Column(Text, nullable=False, unique=True)  # Уникальный идентификатор
+        sell_listings = Column(Integer)
+        sell_price = Column(Integer)  # Цена в целых числах
+        sell_price_text = Column(Text)
+        app_icon = Column(Text)
+        app_name = Column(Text)
+        appid = Column(Integer)
+        classid = Column(Text)
+        instanceid = Column(Text)
+        icon_url = Column(Text)
+        tradable = Column(Integer)  # 0 или 1
+        item_name = Column(Text)
+        name_color = Column(Text)
+        item_type = Column(Text)
+        market_name = Column(Text)
+        market_hash_name = Column(Text)
+        commodity = Column(Integer)  # 0 или 1
+        sale_price_text = Column(Text)
+
+elif MODE == 'update':
+    class Cs2Market(Base):
+        __tablename__ = 'cs2_steam_marketplace'  # SELECT COUNT(*) FROM cs2_steam_marketplace;
+
+        id = Column(Integer, primary_key=True, autoincrement=True)
+        name = Column(Text)
+        hash_name = Column(Text, nullable=False, unique=True)  # Уникальный идентификатор
+        sell_price = Column(Integer)  # Цена в целых числах
+        classid = Column(Text)
+        instanceid = Column(Text)
+        icon_url = Column(Text)
+        item_name = Column(Text)
+        item_type = Column(Text)
+        market_name = Column(Text)
+        market_hash_name = Column(Text)
+        commodity = Column(Integer)  # 0 или 1
+        sale_price_text = Column(Text)
 
 # Создание подключения к базе данных
 engine = create_engine(DB_URL, poolclass=NullPool)
@@ -69,38 +97,63 @@ def create_table():
 
 # Функция для вставки данных в базу
 def insert_item(data):
-    session = Session()
-    try:
-        item = Cs2Market(
-            name=data["name"],
-            hash_name=data["hash_name"],
-            sell_listings=data["sell_listings"],
-            sell_price=data["sell_price"],
-            sell_price_text=data["sell_price_text"],
-            app_icon=data["app_icon"],
-            app_name=data["app_name"],
-            appid=data["appid"],
-            classid=data["classid"],
-            instanceid=data["instanceid"],
-            icon_url=data["icon_url"],
-            tradable=data["tradable"],
-            item_name=data["item_name"],
-            name_color=data["name_color"],
-            item_type=data["item_type"],
-            market_name=data["market_name"],
-            market_hash_name=data["market_hash_name"],
-            commodity=data["commodity"],
-            sale_price_text=data["sale_price_text"]
-        )
-        session.add(item)
-        session.commit()
-        logger.info(f"Item '{data['name']}' successfully inserted into database.")
-        os.system("clear")
-    except Exception as e:
-        session.rollback()
-        logger.error(f"Error inserting item '{data['name']}': {e}")
-    finally:
-        session.close()
+    with Session() as session:
+        try:
+            if MODE == 'full':
+                item = Cs2Market(
+                    name=data["name"],
+                    hash_name=data["hash_name"],
+                    sell_listings=data["sell_listings"],
+                    sell_price=data["sell_price"],
+                    sell_price_text=data["sell_price_text"],
+                    app_icon=data["app_icon"],
+                    app_name=data["app_name"],
+                    appid=data["appid"],
+                    classid=data["classid"],
+                    instanceid=data["instanceid"],
+                    icon_url=data["icon_url"],
+                    tradable=data["tradable"],
+                    item_name=data["item_name"],
+                    name_color=data["name_color"],
+                    item_type=data["item_type"],
+                    market_name=data["market_name"],
+                    market_hash_name=data["market_hash_name"],
+                    commodity=data["commodity"],
+                    sale_price_text=data["sale_price_text"]
+                )
+                session.add(item)
+                logger.info(f"Item '{data['name']}' successfully inserted into database.")
+            elif MODE == 'update':
+                existing_item = session.query(Cs2Market).filter_by(hash_name=data["hash_name"]).first()
+                if existing_item:
+                    if data["sell_price"] is not None and data["sell_price"] < existing_item.sell_price:
+                        existing_item.sell_price = data["sell_price"]
+                        existing_item.sale_price_text = data["sale_price_text"]
+                        logger.info(f"Item '{data['name']}' price updated in database.")
+                    else:
+                        logger.info(f"Item '{data['name']}' price remains unchanged.")
+                else:
+                    item = Cs2Market(
+                        name=data["name"],
+                        hash_name=data["hash_name"],
+                        sell_price=data["sell_price"],
+                        classid=data["classid"],
+                        instanceid=data["instanceid"],
+                        icon_url=data["icon_url"],
+                        item_name=data["item_name"],
+                        item_type=data["item_type"],
+                        market_name=data["market_name"],
+                        market_hash_name=data["market_hash_name"],
+                        commodity=data["commodity"],
+                        sale_price_text=data["sale_price_text"]
+                    )
+                    session.add(item)
+                    logger.info(f"Item '{data['name']}' successfully inserted into database.")
+            
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Error processing item '{data['name']}': {e}\n{traceback.format_exc()}")
 
 # Получение количества предметов на рынке
 def get_total_items():
