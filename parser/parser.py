@@ -25,7 +25,7 @@ proxies_list = load_proxies_from_file('proxies.txt')
 # Создаем цикл для перебора прокси
 proxy_cycle = cycle(proxies_list)
 
-def get_response(url, proxy_cycle, params=None, timeout=5):
+def get_response(url, proxy_cycle, params=None, timeout=10): # timeout 10 because handling big data takes big patience ;)
     try:
         # First try the request without proxy
         response = requests.get(url, params=params, timeout=timeout)
@@ -214,7 +214,7 @@ def get_total_items():
             "l": "english"
         }
         
-        response = get_response(url, proxy_cycle, params=params)
+        response = get_response(url, proxy_cycle, params=params) # default timeout
 
         # Проверка на успешный ответ
         if response.status_code != 200:
@@ -257,7 +257,7 @@ def fetch_items(start, step, retries=0):
         # Ожидание
         time.sleep(delay)
 
-        response = get_response(url, proxy_cycle, params=params, timeout=10)
+        response = get_response(url, proxy_cycle, params=params) # default timeout
 
         # Если ошибка 429 (слишком много запросов), применяем фиксированную задержку
         if response.status_code == 429:
