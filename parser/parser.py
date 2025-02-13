@@ -52,13 +52,6 @@ def get_response(url, proxy_cycle, params=None, timeout=10): # timeout 10 becaus
     logger.error("[PROXY] All proxies are not working.")
     return None
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--mode", choices=["full", "update"], default="full", help="Mode of operation")
-args = parser.parse_args()
-
-MODE = args.mode
-print(f"Running in {MODE.upper()} mode...")
-
 # Настроим базовое логирование
 logging.basicConfig(
     level=logging.INFO,
@@ -67,6 +60,13 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--mode", choices=["full", "update"], default="full", help="Mode of operation")
+args = parser.parse_args()
+
+MODE = args.mode
+logger.info(f"Running in {MODE.upper()} mode...")
 
 DB_CONFIG = {
     "dbname": os.getenv("DB_NAME", "cs2_steam_marketplace"),
