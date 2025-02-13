@@ -24,3 +24,4 @@ docker compose up --build
 
 # Завершаем выполнение
 echo "Deployment complete!"
+
