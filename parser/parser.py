@@ -47,7 +47,7 @@ def get_response(url, proxy_cycle, params=None, timeout=10): # timeout 10 becaus
             logger.info(f"PROXY - Response through proxy: {proxy}")
             return response  # Return response if request is successful
         except requests.RequestException as e:
-            logger.error(f"PROXY - Error with proxy {proxy}: {e}")
+            logger.error(f"PROXY - Error with proxy {proxy}: {response.status_code}")
             return response # добавил то о чем говорил ниже
     
     logger.error("PROXY - All proxies are not working.") # возможно не показывается, т.к. proxy_cycle
