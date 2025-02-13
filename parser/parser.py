@@ -126,6 +126,7 @@ def insert_item(data):
             elif MODE == 'update':
                 existing_item = session.query(Cs2Market).filter_by(hash_name=data["hash_name"]).first()
                 if existing_item:
+                    # Проверка, если цена на товар изменилась, обновляем только если новая цена ниже
                     if data["sell_price"] is not None and data["sell_price"] < existing_item.sell_price:
                         existing_item.sell_price = data["sell_price"]
                         existing_item.sale_price_text = data["sale_price_text"]
@@ -133,10 +134,12 @@ def insert_item(data):
                     else:
                         logger.info(f"Item '{data['name']}' price remains unchanged.")
                 else:
+                    # Если элемента нет в базе, вставляем новый элемент
                     item = Cs2Market(
                         name=data["name"],
                         hash_name=data["hash_name"],
                         sell_price=data["sell_price"],
+                        sell_price_text=data["sale_price_text"],
                         classid=data["classid"],
                         instanceid=data["instanceid"],
                         icon_url=data["icon_url"],
@@ -144,12 +147,10 @@ def insert_item(data):
                         item_type=data["item_type"],
                         market_name=data["market_name"],
                         market_hash_name=data["market_hash_name"],
-                        commodity=data["commodity"],
-                        sale_price_text=data["sale_price_text"]
+                        commodity=data["commodity"]
                     )
                     session.add(item)
                     logger.info(f"Item '{data['name']}' successfully inserted into database.")
-            
             session.commit()
         except Exception as e:
             session.rollback()
