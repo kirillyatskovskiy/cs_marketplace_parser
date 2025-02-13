@@ -281,7 +281,7 @@ def parse_market():
     step = 100  # Request 100 items per batch
     futures = []
     
-    with ThreadPoolExecutor(max_workers=1) as executor:  # Указываем количество потоков
+    with ThreadPoolExecutor(max_workers=10) as executor:  # Указываем количество потоков
         for start in range(0, total_items, step):
             futures.append(executor.submit(fetch_items, start, step))
 
