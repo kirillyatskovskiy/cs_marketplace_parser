@@ -10,6 +10,47 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import random
 import argparse
 import traceback
+from itertools import cycle
+
+# Функция для загрузки прокси из файла
+def load_proxies_from_file(file_path):
+    with open(file_path, 'r') as file:
+        # Чтение прокси из файла, удаление лишних пробелов и пустых строк
+        proxies = [line.strip() for line in file.readlines() if line.strip()]
+    return proxies
+
+# Загружаем список прокси из файла
+proxies_list = load_proxies_from_file('proxies.txt')
+
+# Создаем цикл для перебора прокси
+proxy_cycle = cycle(proxies_list)
+
+def get_response(url, proxy_cycle, params=None, timeout=5):
+    try:
+        # First try the request without proxy
+        response = requests.get(url, params=params, timeout=timeout)
+        response.raise_for_status()  # Check for a successful response
+        logger.info("[PROXY] Response without proxy.")
+        return response  # Return response if request is successful
+    except requests.RequestException as e:
+        logger.error(f"[PROXY] Error without proxy: {e}")
+    
+    # If request without proxy failed, try with proxies
+    for proxy in proxy_cycle:  # Iterate through proxies
+        proxies = {
+            "http": f"http://{proxy}",
+            "https": f"http://{proxy}"
+        }
+        try:
+            response = requests.get(url, params=params, proxies=proxies, timeout=timeout)
+            response.raise_for_status()  # Check for a successful response
+            logger.info(f"[PROXY] Response through proxy: {proxy}")
+            return response  # Return response if request is successful
+        except requests.RequestException as e:
+            logger.error(f"[PROXY] Error with proxy {proxy}: {e}")
+    
+    logger.error("[PROXY] All proxies are not working.")
+    return None
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--mode", choices=["full", "update"], default="full", help="Mode of operation")
@@ -173,7 +214,7 @@ def get_total_items():
             "l": "english"
         }
         
-        response = requests.get(url, params=params)
+        response = get_response(url, proxy_cycle, params=params)
 
         # Проверка на успешный ответ
         if response.status_code != 200:
@@ -216,7 +257,7 @@ def fetch_items(start, step, retries=0):
         # Ожидание
         time.sleep(delay)
 
-        response = requests.get(url, params=params, timeout=10)
+        response = get_response(url, proxy_cycle, params=params, timeout=10)
 
         # Если ошибка 429 (слишком много запросов), применяем фиксированную задержку
         if response.status_code == 429:

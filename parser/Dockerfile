@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY requirements.txt ./
+COPY proxies.txt ./
 COPY parser.py ./
 
 RUN pip install --no-cache-dir -r requirements.txt
@@ -23,4 +24,4 @@ ENV DB_PORT=5432
 COPY wait-for-it.sh /wait-for-it.sh
 RUN chmod +x /wait-for-it.sh
 
-CMD ["python", "parser.py", "--mode", "update"]
+CMD ["python", "parser.py", "--mode", "full"]
