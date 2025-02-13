@@ -57,6 +57,7 @@ parser.add_argument("--mode", choices=["full", "update"], default="full", help="
 args = parser.parse_args()
 
 MODE = args.mode
+print(f"Running in {MODE.upper()} mode...")
 
 # Настроим базовое логирование
 logging.basicConfig(
