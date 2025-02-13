@@ -33,7 +33,7 @@ def get_response(url, proxy_cycle, params=None, timeout=10): # timeout 10 becaus
         logger.info("PROXY - Response without proxy.")
         return response  # Return response if request is successful
     except requests.RequestException as e:
-        logger.error(f"PROXY - Error without proxy: {e}")
+        logger.error(f"PROXY - Error without proxy: {response.status_code}")
     
     # If request without proxy failed, try with proxies
     for proxy in proxy_cycle:  # Iterate through proxies
