@@ -253,7 +253,7 @@ def fetch_items(start, step, retries=0):
         time.sleep(delay)
 
         response = get_response(url, proxy_cycle, params=params) # default timeout
-        logger.info(f"response.status_code")
+        logger.info(response.status_code)
 
         # Если ошибка 429 (слишком много запросов), применяем фиксированную задержку
         if response.status_code == 429:
