@@ -30,10 +30,10 @@ def get_response(url, proxy_cycle, params=None, timeout=10): # timeout 10 becaus
         # First try the request without proxy
         response = requests.get(url, params=params, timeout=timeout)
         response.raise_for_status()  # Check for a successful response
-        logger.info("[PROXY] Response without proxy.")
+        logger.info("PROXY - Response without proxy.")
         return response  # Return response if request is successful
     except requests.RequestException as e:
-        logger.error(f"[PROXY] Error without proxy: {e}")
+        logger.error(f"PROXY - Error without proxy: {e}")
     
     # If request without proxy failed, try with proxies
     for proxy in proxy_cycle:  # Iterate through proxies
@@ -44,13 +44,13 @@ def get_response(url, proxy_cycle, params=None, timeout=10): # timeout 10 becaus
         try:
             response = requests.get(url, params=params, proxies=proxies, timeout=timeout)
             response.raise_for_status()  # Check for a successful response
-            logger.info(f"[PROXY] Response through proxy: {proxy}")
+            logger.info(f"PROXY - Response through proxy: {proxy}")
             return response  # Return response if request is successful
         except requests.RequestException as e:
-            logger.error(f"[PROXY] Error with proxy {proxy}: {e}")
+            logger.error(f"PROXY - Error with proxy {proxy}: {e}")
     
-    logger.error("[PROXY] All proxies are not working.")
-    return None
+    logger.error("PROXY - All proxies are not working.")
+    return response
 
 # Настроим базовое логирование
 logging.basicConfig(
@@ -173,8 +173,8 @@ def insert_item(data):
                     else:
                         logger.info(f"Item '{data['name']}' price remains unchanged.")
                 else:
-                    # Если элемента нет в базе, вставляем новый элемент
-                    item = Cs2Market(
+                    # after testing without deleting the database volume, new records are successfully inserted after removing the sell_price_text field  
+                    item = Cs2Market( 
                         name=data["name"],
                         hash_name=data["hash_name"],
                         sell_price=data["sell_price"],
