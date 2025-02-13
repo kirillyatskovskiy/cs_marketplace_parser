@@ -26,6 +26,8 @@ services:
       DB_PASSWORD: root
       DB_HOST: postgres_cs2p
       DB_PORT: 5432
+    volumes:
+      - /proxies_cs2p/proxies.txt:/app/proxies.txt
     depends_on:
       - postgres_cs2p
     command: /wait-for-it.sh postgres_cs2p:5432 -- python /app/parser.py
