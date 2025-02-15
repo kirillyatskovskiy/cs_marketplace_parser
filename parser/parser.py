@@ -153,10 +153,6 @@ def insert_item(data):
                 logger.info(f"Item '{data['name']}' successfully inserted into database.")
             elif MODE == 'update':
                 existing_item = session.query(Cs2Market).filter_by(hash_name=data["hash_name"]).first()
-                try:
-                    logger.info("Sell price of existing item is: " + str(existing_item.sale_price_text))
-                except AttributeError:
-                    logger.info("Value not found")
                 if existing_item:
                     # Проверка, если цена на товар изменилась, обновляем только если новая цена ниже
                     if data["sell_price"] is not None and data["sell_price"] < existing_item.sell_price:
