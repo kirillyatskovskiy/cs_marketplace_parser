@@ -121,33 +121,35 @@ Session = sessionmaker(bind=engine)
 def create_table():
     Base.metadata.create_all(engine)
 
+def create_item(data):
+    return Cs2Market(
+        name=data["name"],
+        hash_name=data["hash_name"],
+        sell_listings=data["sell_listings"],
+        sell_price=data["sell_price"],
+        sell_price_text=data["sell_price_text"],
+        app_icon=data["app_icon"],
+        app_name=data["app_name"],
+        appid=data["appid"],
+        classid=data["classid"],
+        instanceid=data["instanceid"],
+        icon_url=data["icon_url"],
+        tradable=data["tradable"],
+        item_name=data["item_name"],
+        name_color=data["name_color"],
+        item_type=data["item_type"],
+        market_name=data["market_name"],
+        market_hash_name=data["market_hash_name"],
+        commodity=data["commodity"],
+        sale_price_text=data["sale_price_text"]
+    )
+
 # Функция для вставки данных в базу
 def insert_item(data):
     with Session() as session:
         try:
             if MODE == 'full':
-                item = Cs2Market(
-                    name=data["name"],
-                    hash_name=data["hash_name"],
-                    sell_listings=data["sell_listings"],
-                    sell_price=data["sell_price"],
-                    sell_price_text=data["sell_price_text"],
-                    app_icon=data["app_icon"],
-                    app_name=data["app_name"],
-                    appid=data["appid"],
-                    classid=data["classid"],
-                    instanceid=data["instanceid"],
-                    icon_url=data["icon_url"],
-                    tradable=data["tradable"],
-                    item_name=data["item_name"],
-                    name_color=data["name_color"],
-                    item_type=data["item_type"],
-                    market_name=data["market_name"],
-                    market_hash_name=data["market_hash_name"],
-                    commodity=data["commodity"],
-                    sale_price_text=data["sale_price_text"]
-                )
-                session.add(item)
+                session.add(create_item(data))
                 logger.info(f"Item '{data['name']}' successfully inserted into database.")
             elif MODE == 'update':
                 existing_item = session.query(Cs2Market).filter_by(hash_name=data["hash_name"]).first()
@@ -164,28 +166,7 @@ def insert_item(data):
                     else:
                         logger.info(f"Item '{data['name']}' price remains unchanged.")
                 else: 
-                    item = Cs2Market( 
-                        name=data["name"],
-                        hash_name=data["hash_name"],
-                        sell_listings=data["sell_listings"],
-                        sell_price=data["sell_price"],
-                        sell_price_text=data["sell_price_text"],
-                        app_icon=data["app_icon"],
-                        app_name=data["app_name"],
-                        appid=data["appid"],
-                        classid=data["classid"],
-                        instanceid=data["instanceid"],
-                        icon_url=data["icon_url"],
-                        tradable=data["tradable"],
-                        item_name=data["item_name"],
-                        name_color=data["name_color"],
-                        item_type=data["item_type"],
-                        market_name=data["market_name"],
-                        market_hash_name=data["market_hash_name"],
-                        commodity=data["commodity"],
-                        sale_price_text=data["sale_price_text"]
-                    )
-                    session.add(item)
+                    session.add(create_item(data))
                     logger.info(f"Item '{data['name']}' successfully inserted into database.")
             session.commit()
         except Exception as e:
