@@ -82,47 +82,34 @@ Base = declarative_base()
 # Определение модели для таблицы cs2_market
 
 if MODE == 'full':
-    class Cs2Market(Base):
-        __tablename__ = 'cs2_steam_marketplace'  # SELECT COUNT(*) FROM cs2_steam_marketplace;
-
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        name = Column(Text)
-        hash_name = Column(Text, nullable=False)
-        sell_listings = Column(Integer)
-        sell_price = Column(Integer)  # Цена в целых числах
-        sell_price_text = Column(Text)
-        app_icon = Column(Text)
-        app_name = Column(Text)
-        appid = Column(Integer)
-        classid = Column(Text)
-        instanceid = Column(Text)
-        icon_url = Column(Text)
-        tradable = Column(Integer)  # 0 или 1
-        item_name = Column(Text)
-        name_color = Column(Text)
-        item_type = Column(Text)
-        market_name = Column(Text)
-        market_hash_name = Column(Text)
-        commodity = Column(Integer)  # 0 или 1
-        sale_price_text = Column(Text)
+    hash_name_column = Column(Text, nullable=False)
 
 elif MODE == 'update':
-    class Cs2Market(Base):
-        __tablename__ = 'cs2_steam_marketplace'  # SELECT COUNT(*) FROM cs2_steam_marketplace;
+    hash_name_column = Column(Text, nullable=False, unique=True)
 
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        name = Column(Text)
-        hash_name = Column(Text, nullable=False, unique=True)  # Уникальный идентификатор
-        sell_price = Column(Integer)  # Цена в целых числах
-        classid = Column(Text)
-        instanceid = Column(Text)
-        icon_url = Column(Text)
-        item_name = Column(Text)
-        item_type = Column(Text)
-        market_name = Column(Text)
-        market_hash_name = Column(Text)
-        commodity = Column(Integer)  # 0 или 1
-        sale_price_text = Column(Text)
+class Cs2Market(Base):
+    __tablename__ = 'cs2_steam_marketplace'  # SELECT COUNT(*) FROM cs2_steam_marketplace;
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(Text)
+    hash_name = hash_name_column
+    sell_listings = Column(Integer)
+    sell_price = Column(Integer)  # Цена в целых числах
+    sell_price_text = Column(Text)
+    app_icon = Column(Text)
+    app_name = Column(Text)
+    appid = Column(Integer)
+    classid = Column(Text)
+    instanceid = Column(Text)
+    icon_url = Column(Text)
+    tradable = Column(Integer)  # 0 или 1
+    item_name = Column(Text)
+    name_color = Column(Text)
+    item_type = Column(Text)
+    market_name = Column(Text)
+    market_hash_name = Column(Text)
+    commodity = Column(Integer)  # 0 или 1
+    sale_price_text = Column(Text)
 
 # Создание подключения к базе данных
 engine = create_engine(DB_URL, poolclass=NullPool)
