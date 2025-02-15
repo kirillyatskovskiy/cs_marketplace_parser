@@ -163,21 +163,27 @@ def insert_item(data):
                         logger.info(f"Item '{data['name']}' price updated in database.")
                     else:
                         logger.info(f"Item '{data['name']}' price remains unchanged.")
-                else:
-                    # after testing without deleting the database volume, new records are successfully inserted after removing the sell_price_text field  
+                else: 
                     item = Cs2Market( 
                         name=data["name"],
                         hash_name=data["hash_name"],
+                        sell_listings=data["sell_listings"],
                         sell_price=data["sell_price"],
                         sell_price_text=data["sell_price_text"],
+                        app_icon=data["app_icon"],
+                        app_name=data["app_name"],
+                        appid=data["appid"],
                         classid=data["classid"],
                         instanceid=data["instanceid"],
                         icon_url=data["icon_url"],
+                        tradable=data["tradable"],
                         item_name=data["item_name"],
+                        name_color=data["name_color"],
                         item_type=data["item_type"],
                         market_name=data["market_name"],
                         market_hash_name=data["market_hash_name"],
-                        commodity=data["commodity"]
+                        commodity=data["commodity"],
+                        sale_price_text=data["sale_price_text"]
                     )
                     session.add(item)
                     logger.info(f"Item '{data['name']}' successfully inserted into database.")
