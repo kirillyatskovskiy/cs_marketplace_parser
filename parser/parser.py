@@ -182,6 +182,7 @@ def insert_item(data):
                         name=data["name"],
                         hash_name=data["hash_name"],
                         sell_price=data["sell_price"],
+                        sell_price_text=data["sell_price_text"],
                         classid=data["classid"],
                         instanceid=data["instanceid"],
                         icon_url=data["icon_url"],
