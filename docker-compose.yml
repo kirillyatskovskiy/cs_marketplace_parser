@@ -1,7 +1,7 @@
 services:
-  postgres_cs2p:
+  postgres_csp:
     image: postgres:15
-    container_name: postgres_cs2p
+    container_name: postgres_csskins
     environment:
       POSTGRES_DB: cs_steam_marketplace
       POSTGRES_USER: root
@@ -19,16 +19,16 @@ services:
 
   parser_cs2p:
     build: ./parser
-    container_name: parser_cs2p
+    container_name: parser_csskins
     environment:
       PARSER_MODE: update
       DB_NAME: cs_steam_marketplace
       DB_USER: root
       DB_PASSWORD: root
-      DB_HOST: postgres_cs2p
+      DB_HOST: postgres_csskins
       DB_PORT: 5432
     volumes:
-      - /proxies_cs2p/proxies.txt:/app/proxies.txt
+      - /csskins_proxie/proxies.txt:/app/proxies.txt
     depends_on:
       - postgres_cs2p
     command: /app/wait-for-it.sh postgres_cs2p:5432 -- python /app/main.py
