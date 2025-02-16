@@ -1,4 +1,4 @@
-from main import MODE
+from cfg import MODE
 from sqlalchemy import Column, Integer, Text
 from databse import Base
 
