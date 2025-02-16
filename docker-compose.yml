@@ -31,7 +31,7 @@ services:
       - /proxies_cs2p/proxies.txt:/app/proxies.txt
     depends_on:
       - postgres_cs2p
-    command: /wait-for-it.sh postgres_cs2p:5432 -- python /app/parser.py
+    command: /app/wait-for-it.sh postgres_cs2p:5432 -- python /app/main.py
 
 volumes:
   postgres_data_cs2p:
