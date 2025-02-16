@@ -2,19 +2,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
-import os
-from main import MODE
+from cfg import MODE, DB_CONFIG
 from utils import logger
 from models import create_item, Cs2Market
 import traceback
-
-DB_CONFIG = {
-    "dbname": os.getenv("DB_NAME", "cs2_steam_marketplace"),
-    "user": os.getenv("DB_USER", "root"),
-    "password": os.getenv("DB_PASSWORD", "root"),
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": os.getenv("DB_PORT", 5432)
-}
 
 # Настройки базы данных PostgreSQL из переменных окружения
 DB_URL = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"

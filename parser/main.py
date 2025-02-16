@@ -1,12 +1,10 @@
-import os
 from utils import logger
 from database import create_table, insert_item
 from fetcher import get_total_items, fetch_items
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from cfg import MODE
 
-MODE = os.getenv('PARSER_MODE', 'full') 
 logger.info(f"Running in {MODE.upper()} mode...")
-
 
 # Основная функция для парсинга всех предметов
 def parse_market():
