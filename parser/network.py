@@ -35,7 +35,7 @@ def get_response(url, proxy_cycle, params=None, timeout=10): # timeout 10 becaus
         if len(error_message) > MAX_ERROR_LENGTH:
             error_message = error_message[:MAX_ERROR_LENGTH] + '...'
             
-        logger.error(f"PROXY - Error without proxy: {get_error_message(e)}")
+        logger.error(f"PROXY - Error without proxy: {get_error_message(error_message)}")
     
     # If request without proxy failed, try with proxies
     for proxy in proxy_cycle:  # Iterate through proxies
@@ -49,7 +49,7 @@ def get_response(url, proxy_cycle, params=None, timeout=10): # timeout 10 becaus
             logger.info(f"PROXY - Response through proxy: {proxy}")
             return response  # Return response if request is successful
         except requests.RequestException as e:
-            logger.error(f"PROXY - Error with proxy {proxy}: {get_error_message(e)}")
+            logger.error(f"PROXY - Error with proxy {proxy}: {get_error_message(error_message)}")
             return response # добавил то о чем говорил ниже
     
     logger.error("PROXY - All proxies are not working.") # возможно не показывается, т.к. proxy_cycle

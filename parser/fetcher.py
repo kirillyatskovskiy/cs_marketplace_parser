@@ -29,6 +29,10 @@ def fetch_items(start, step, retries=0):
 
         response = get_response(url, proxy_cycle, params=params) # default timeout
 
+        if response is None:
+            logger.error("Failed to get a valid response.")
+            return []
+
         # Если ошибка 429 (слишком много запросов), применяем фиксированную задержку
         if response.status_code == 429:
             # Фиксированная задержка в 30 секунд

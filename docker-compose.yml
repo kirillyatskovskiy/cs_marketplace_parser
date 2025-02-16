@@ -32,6 +32,5 @@ services:
     depends_on:
       - postgres_cs2p
     command: /app/wait-for-it.sh postgres_cs2p:5432 -- python /app/main.py
-
 volumes:
   postgres_data_cs2p:
