@@ -1,6 +1,6 @@
 from cfg import MODE
 from sqlalchemy import Column, Integer, Text
-from databse import Base
+from database import Base
 
 # Определение модели для таблицы cs2_market
 
