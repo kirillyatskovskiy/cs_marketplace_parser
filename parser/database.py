@@ -1,17 +1,13 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from cfg import MODE, DB_CONFIG
 from utils import logger
-from models import create_item, Cs2Market
+from models import create_item, Cs2Market, Base
 import traceback
 
 # Настройки базы данных PostgreSQL из переменных окружения
 DB_URL = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
-
-# Создание базового класса для SQLAlchemy
-Base = declarative_base()
 
 # Создание подключения к базе данных
 engine = create_engine(DB_URL, poolclass=NullPool)

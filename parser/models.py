@@ -1,6 +1,9 @@
 from cfg import MODE
 from sqlalchemy import Column, Integer, Text
-from database import Base
+from sqlalchemy.ext.declarative import declarative_base
+
+# Создание базового класса для SQLAlchemy
+Base = declarative_base()
 
 # Определение модели для таблицы cs2_market
 
