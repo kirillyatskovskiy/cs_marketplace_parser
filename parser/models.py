@@ -16,7 +16,7 @@ elif MODE == 'update':
 class Cs2Market(Base):
     __tablename__ = 'cs_steam_marketplace'  # SELECT COUNT(*) FROM cs_steam_marketplace;
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    skin_id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(Text)
     hash_name = hash_name_column
     sell_listings = Column(Integer)
