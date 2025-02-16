@@ -34,3 +34,4 @@ services:
     command: /app/wait-for-it.sh csskins_postgres:5432 -- python /app/main.py
 volumes:
   csskins_postgres_data:
+    external: true
