@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 # Создание базового класса для SQLAlchemy
-Base = declarative_base()
+Base = declarative_base() # если тут ошибка кругового импорта, то заменить импорт в databse.py с Base на Cs2Market и использовать вместо Base
 
 # Определение модели для таблицы cs2_market
 
