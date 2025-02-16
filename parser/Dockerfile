@@ -9,12 +9,10 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY requirements.txt ./
-COPY parser.py ./
+COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY wait-for-it.sh /wait-for-it.sh
 RUN chmod +x /wait-for-it.sh
 
-CMD ["python", "parser.py"]
+CMD ["python", "main.py"]
