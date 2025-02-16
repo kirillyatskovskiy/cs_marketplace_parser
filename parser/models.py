@@ -14,7 +14,7 @@ elif MODE == 'update':
     hash_name_column = Column(Text, nullable=False, unique=True)
 
 class Cs2Market(Base):
-    __tablename__ = 'cs2_steam_marketplace'  # SELECT COUNT(*) FROM cs2_steam_marketplace;
+    __tablename__ = 'cs_steam_marketplace'  # SELECT COUNT(*) FROM cs_steam_marketplace;
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(Text)

@@ -3,7 +3,7 @@ services:
     image: postgres:15
     container_name: postgres_cs2p
     environment:
-      POSTGRES_DB: cs2_steam_marketplace
+      POSTGRES_DB: cs_steam_marketplace
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
     ports:
@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data_cs2p:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d cs2_steam_marketplace"]
+      test: ["CMD-SHELL", "pg_isready -U root -d cs_steam_marketplace"]
       interval: 5s
       retries: 5
       start_period: 10s
@@ -22,7 +22,7 @@ services:
     container_name: parser_cs2p
     environment:
       PARSER_MODE: update
-      DB_NAME: cs2_steam_marketplace
+      DB_NAME: cs_steam_marketplace
       DB_USER: root
       DB_PASSWORD: root
       DB_HOST: postgres_cs2p
