@@ -1,7 +1,7 @@
 services:
-  postgres_csp:
+  csskins_postgres:
     image: postgres:15
-    container_name: postgres_csskins
+    container_name: csskins_postgres
     environment:
       POSTGRES_DB: cs_steam_marketplace
       POSTGRES_USER: root
@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data_cs2p:/var/lib/postgresql/data
+      - csskins_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U root -d cs_steam_marketplace"]
       interval: 5s
@@ -17,7 +17,7 @@ services:
       start_period: 10s
       timeout: 3s
 
-  parser_cs2p:
+  csskins_parser:
     build: ./parser
     container_name: parser_csskins
     environment:
@@ -25,12 +25,12 @@ services:
       DB_NAME: cs_steam_marketplace
       DB_USER: root
       DB_PASSWORD: root
-      DB_HOST: postgres_csskins
+      DB_HOST: csskins_postgres
       DB_PORT: 5432
     volumes:
       - /csskins_proxie/proxies.txt:/app/proxies.txt
     depends_on:
-      - postgres_cs2p
-    command: /app/wait-for-it.sh postgres_cs2p:5432 -- python /app/main.py
+      - csskins_postgres
+    command: /app/wait-for-it.sh csskins_postgres:5432 -- python /app/main.py
 volumes:
-  postgres_data_cs2p:
+  csskins_postgres_data:
