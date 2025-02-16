@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
-from cfg import MODE, DB_CONFIG
+from app_cfg import MODE, DB_CONFIG
 from utils import logger
 from models import create_item, Cs2Market, Base
 import traceback
