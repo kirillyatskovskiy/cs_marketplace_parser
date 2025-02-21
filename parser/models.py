@@ -35,7 +35,6 @@ class Cs2Market(Base):
     market_name = Column(Text)
     market_hash_name = Column(Text)
     commodity = Column(Integer)  # 0 или 1
-    sale_price_text = Column(Text)
 
 def create_item(data):
     return Cs2Market(
@@ -57,5 +56,4 @@ def create_item(data):
         market_name=data["market_name"],
         market_hash_name=data["market_hash_name"],
         commodity=data["commodity"],
-        sale_price_text=data["sale_price_text"]
     )

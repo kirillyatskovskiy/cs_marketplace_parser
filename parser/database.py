@@ -32,7 +32,7 @@ def insert_item(data):
                     # Проверка, если цена на товар изменилась, обновляем только если новая цена ниже
                     if data["sell_price"] is not None and data["sell_price"] < existing_item.sell_price:
                         existing_item.sell_price = data["sell_price"]
-                        existing_item.sale_price_text = data["sale_price_text"]
+                        existing_item.sell_price_text = data["sell_price_text"]
                         logger.info(f"Item '{data['name']}' price updated in database.")
                     else:
                         logger.info(f"Item '{data['name']}' price remains unchanged.")

@@ -42,7 +42,6 @@ def parse_market():
                         "market_name": item.get("asset_description", {}).get("market_name", ""),
                         "market_hash_name": item.get("asset_description", {}).get("market_hash_name", ""),
                         "commodity": item.get("asset_description", {}).get("commodity", 0),
-                        "sale_price_text": item.get("sale_price_text", "N/A")
                     }
                     insert_item(item_data)
             except Exception as e:
